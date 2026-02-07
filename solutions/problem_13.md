@@ -10,9 +10,9 @@ sur la meme ligne, sur la meme colonne, ou sur la meme diagonale.
 **Grille d'Amel :**
 
 ```
+N B N
 B B N
-N B B
-B N N
+B B B
 ```
 
 **Grille de Sofia :**
@@ -20,7 +20,7 @@ B N N
 ```
 N B N
 B N B
-N B N
+B B B
 ```
 
 (B = blanc, N = noir)
@@ -83,28 +83,31 @@ Pour chaque position, on ecrit la contrainte :
 
 ou t(i,j) = 1 si le jeton en (i,j) est blanc (a retourner), et t(i,j) = 0 s'il est noir.
 
-### Invariant fondamental
+### Invariant de parite fondamental
 
-La matrice A du systeme (9 lignes x 8 colonnes sur GF(2)) est de **rang 7**, ce qui
-signifie que l'espace noyau a gauche est de dimension 2. Il existe donc des contraintes
-de compatibilite sur le vecteur cible.
+Considerons l'ensemble S des 6 positions situees **hors de l'anti-diagonale**, c'est-a-dire
+toutes les positions sauf (1,3), (2,2) et (3,1) :
 
-**Invariant 1 (positions hors diagonale principale) :**
-Les six positions (1,2), (1,3), (2,1), (2,3), (3,1), (3,2) -- c'est-a-dire toutes
-les positions **sauf la diagonale principale** (1,1), (2,2), (3,3) -- verifient la
-propriete suivante : chacun des 8 coups retourne un nombre **pair** de ces six positions.
+**S = {(1,1), (1,2), (2,1), (2,3), (3,2), (3,3)}**
 
-Par consequent, **la parite du nombre de jetons blancs parmi ces 6 positions est un
-invariant** : aucune combinaison de coups ne peut la modifier.
+Verifions que chaque coup retourne un nombre **pair** de positions dans S :
 
-Pour atteindre la configuration tout-noir, il faut 0 jeton blanc parmi ces 6 positions
-(parite paire). Donc, **si le nombre de jetons blancs parmi ces 6 positions est impair
-au depart, le probleme est impossible**.
+| Coup | Positions dans S retournees | Nombre |
+|------|-----------------------------|--------|
+| L1 | (1,1), (1,2) | 2 (pair) |
+| L2 | (2,1), (2,3) | 2 (pair) |
+| L3 | (3,2), (3,3) | 2 (pair) |
+| C1 | (1,1), (2,1) | 2 (pair) |
+| C2 | (1,2), (3,2) | 2 (pair) |
+| C3 | (2,3), (3,3) | 2 (pair) |
+| D1 | (1,1), (3,3) | 2 (pair) |
+| D2 | (aucune) | 0 (pair) |
 
-**Invariant 2 (les 4 coins) :**
-De meme, les quatre coins (1,1), (1,3), (3,1), (3,3) sont tels que chaque coup en
-retourne un nombre pair. La parite du nombre de jetons blancs aux coins est donc
-aussi un invariant.
+Puisque chaque coup retourne un nombre pair de jetons de S, **la parite du nombre de
+jetons blancs dans S est un invariant** : aucune combinaison de coups ne peut la modifier.
+
+Pour atteindre la configuration tout-noir, il faudrait 0 jeton blanc dans S (parite paire).
+Donc, **si le nombre initial de jetons blancs dans S est impair, le probleme est impossible**.
 
 ---
 
@@ -113,36 +116,134 @@ aussi un invariant.
 ### Configuration de depart
 
 ```
-B B N       (1,1)=B  (1,2)=B  (1,3)=N
-N B B       (2,1)=N  (2,2)=B  (2,3)=B
-B N N       (3,1)=B  (3,2)=N  (3,3)=N
+N B N       (1,1)=N  (1,2)=B  (1,3)=N
+B B N       (2,1)=B  (2,2)=B  (2,3)=N
+B B B       (3,1)=B  (3,2)=B  (3,3)=B
 ```
 
 Vecteur cible (1 = blanc a retourner) :
-t = (1, 1, 0, 0, 1, 1, 1, 0, 0)
+t = (0, 1, 0, 1, 1, 0, 1, 1, 1)
 
-### Verification de l'invariant 1
+### Verification de l'invariant de parite
 
-Positions hors diagonale principale : (1,2), (1,3), (2,1), (2,3), (3,1), (3,2).
+Positions dans S = {(1,1), (1,2), (2,1), (2,3), (3,2), (3,3)} :
 
-Couleurs correspondantes : B, N, N, B, B, N.
+| Position | Couleur |
+|----------|---------|
+| (1,1) | N |
+| (1,2) | B |
+| (2,1) | B |
+| (2,3) | N |
+| (3,2) | B |
+| (3,3) | B |
 
-Nombre de jetons blancs parmi ces 6 positions : **3** (impair).
+Nombre de jetons blancs dans S : **4** (pair).
 
-Or, pour la configuration tout-noir, il faudrait **0** jeton blanc (pair).
+La cible est 0 (pair). La parite est compatible : **une solution pourrait exister**.
 
-**La parite est impaire au depart et devrait etre paire a l'arrivee : c'est impossible !**
+### Recherche de la solution optimale
+
+**Peut-on resoudre en 0 coup ?** Non, il y a 6 jetons blancs a retourner.
+
+**Peut-on resoudre en 1 coup ?** Chaque coup retourne exactement 3 positions.
+Il faudrait que ces 3 positions soient exactement un sous-ensemble des 6 blancs,
+et que retourner uniquement ces 3 suffise. Mais il resterait 3 blancs. Impossible.
+
+**Peut-on resoudre en 2 coups ?** Deux coups retournent au plus 6 positions (et possiblement
+moins si elles se chevauchent). L'enumeration exhaustive des C(8,2) = 28 paires confirme
+qu'**aucune paire de coups ne resout le probleme**.
+
+**Peut-on resoudre en 3 coups ?** L'enumeration exhaustive des C(8,3) = 56 triplets confirme
+qu'**aucun triplet ne fonctionne non plus**.
+
+**Solution en 4 coups :** L'enumeration trouve exactement **2 solutions en 4 coups** :
+
+#### Solution 1 : L1, L3, C1, D2
+
+**Coup 1 -- L1 (retourner la ligne 1) :** on retourne (1,1), (1,2), (1,3).
+
+```
+N B N              B N B
+B B N   -- L1 -->  B B N
+B B B              B B B
+```
+
+**Coup 2 -- L3 (retourner la ligne 3) :** on retourne (3,1), (3,2), (3,3).
+
+```
+B N B              B N B
+B B N   -- L3 -->  B B N
+B B B              N N N
+```
+
+**Coup 3 -- C1 (retourner la colonne 1) :** on retourne (1,1), (2,1), (3,1).
+
+```
+B N B              N N B
+B B N   -- C1 -->  N B N
+N N N              B N N
+```
+
+**Coup 4 -- D2 (retourner l'anti-diagonale) :** on retourne (1,3), (2,2), (3,1).
+
+```
+N N B              N N N
+N B N   -- D2 -->  N N N
+B N N              N N N
+```
+
+**Tous les jetons sont noirs !**
+
+#### Solution 2 : L2, C2, C3, D2
+
+**Coup 1 -- L2 (retourner la ligne 2) :** on retourne (2,1), (2,2), (2,3).
+
+```
+N B N              N B N
+B B N   -- L2 -->  N N B
+B B B              B B B
+```
+
+**Coup 2 -- C2 (retourner la colonne 2) :** on retourne (1,2), (2,2), (3,2).
+
+```
+N B N              N N N
+N N B   -- C2 -->  N B B
+B B B              B N B
+```
+
+**Coup 3 -- C3 (retourner la colonne 3) :** on retourne (1,3), (2,3), (3,3).
+
+```
+N N N              N N B
+N B B   -- C3 -->  N B N
+B N B              B N N
+```
+
+**Coup 4 -- D2 (retourner l'anti-diagonale) :** on retourne (1,3), (2,2), (3,1).
+
+```
+N N B              N N N
+N B N   -- D2 -->  N N N
+B N N              N N N
+```
+
+**Tous les jetons sont noirs !**
 
 ### Verification exhaustive
 
-On peut confirmer en testant les 2^8 = 256 combinaisons possibles de coups :
-**aucune ne mene a la configuration tout-noir**.
+L'enumeration des 2^8 = 256 sous-ensembles de coups confirme :
+- **0 solution** en 0, 1, 2 ou 3 coups
+- **2 solutions** en 4 coups : {L1, L3, C1, D2} et {L2, C2, C3, D2}
+- **0 solution** en 5, 6, 7 ou 8 coups
+
+Le minimum est donc bien **4 coups**.
 
 ### Conclusion pour Amel
 
-**Il est impossible pour Amel d'atteindre la configuration tout-noir.**
+**Amel peut atteindre la configuration tout-noir en 4 coups minimum.**
 
-**Reponse : 0**
+**Reponse : 4**
 
 ---
 
@@ -153,75 +254,57 @@ On peut confirmer en testant les 2^8 = 256 combinaisons possibles de coups :
 ```
 N B N       (1,1)=N  (1,2)=B  (1,3)=N
 B N B       (2,1)=B  (2,2)=N  (2,3)=B
-N B N       (3,1)=N  (3,2)=B  (3,3)=N
+B B B       (3,1)=B  (3,2)=B  (3,3)=B
 ```
 
-Vecteur cible :
-t = (0, 1, 0, 1, 0, 1, 0, 1, 0)
+Vecteur cible (1 = blanc a retourner) :
+t = (0, 1, 0, 1, 0, 1, 1, 1, 1)
 
-### Verification des invariants
+### Verification de l'invariant de parite
 
-**Invariant 1 :** Positions hors diagonale : (1,2)=B, (1,3)=N, (2,1)=B, (2,3)=B, (3,1)=N, (3,2)=B.
-Nombre de blancs : **4** (pair). Compatible avec 0 (pair). OK.
+Positions dans S = {(1,1), (1,2), (2,1), (2,3), (3,2), (3,3)} :
 
-**Invariant 2 :** Coins : (1,1)=N, (1,3)=N, (3,1)=N, (3,3)=N.
-Nombre de blancs : **0** (pair). Compatible. OK.
+| Position | Couleur |
+|----------|---------|
+| (1,1) | N |
+| (1,2) | B |
+| (2,1) | B |
+| (2,3) | B |
+| (3,2) | B |
+| (3,3) | B |
 
-Les invariants sont satisfaits, donc une solution pourrait exister.
+Nombre de jetons blancs dans S : **5** (impair).
 
-### Recherche de la solution optimale
+La cible est 0 jetons blancs dans S (parite paire). Or la parite initiale est impaire.
 
-**Peut-on resoudre en 1 coup ?** Aucun des 8 coups ne retourne exactement les 4 positions
-blanches (1,2), (2,1), (2,3), (3,2). Chaque coup ne retourne que 3 positions, et il
-faudrait retourner exactement 4 positions (les 4 bords) sans toucher aux 5 autres.
-C'est impossible en un seul coup.
+**Puisque chaque coup retourne un nombre pair de positions dans S (comme demontre ci-dessus),
+la parite du nombre de blancs dans S ne peut jamais changer. On part de 5 (impair) et on
+devrait arriver a 0 (pair) : c'est impossible.**
 
-**Solution en 2 coups : L2 puis C2.**
+### Preuve detaillee de l'invariant
 
-**Coup 1 -- L2 (retourner la ligne 2) :** on retourne (2,1), (2,2), (2,3).
+Plus formellement, notons w(S) le nombre de jetons blancs dans l'ensemble
+S = {(1,1), (1,2), (2,1), (2,3), (3,2), (3,3)}.
 
-```
-N B N              N B N
-B N B   -- L2 -->  N B N
-N B N              N B N
-```
+Apres n'importe quel coup, w(S) change de +/- k ou k est le nombre de positions de S
+affectees par ce coup. Puisque k est toujours pair (voir tableau ci-dessus), w(S) mod 2
+reste invariant.
 
-- (2,1) : B -> N (bien)
-- (2,2) : N -> B (temporairement blanc)
-- (2,3) : B -> N (bien)
+- Etat initial : w(S) = 5, donc w(S) mod 2 = 1.
+- Etat cible (tout noir) : w(S) = 0, donc w(S) mod 2 = 0.
 
-**Coup 2 -- C2 (retourner la colonne 2) :** on retourne (1,2), (2,2), (3,2).
-
-```
-N B N              N N N
-N B N   -- C2 -->  N N N
-N B N              N N N
-```
-
-- (1,2) : B -> N (bien)
-- (2,2) : B -> N (corrige)
-- (3,2) : B -> N (bien)
-
-**Tous les jetons sont maintenant noirs !**
+Comme 1 != 0, aucune suite de coups ne peut transformer la grille de Sofia en tout-noir.
 
 ### Verification exhaustive
 
-L'enumeration des 256 combinaisons confirme qu'il existe exactement **2 solutions** :
-
-| Nombre de coups | Coups |
-|-----------------|-------|
-| 2 | L2, C2 |
-| 4 | L1, L3, C1, C3 |
-
-La solution en 2 coups est l'unique solution optimale.
-
-On peut aussi verifier la seconde solution (L1, L3, C1, C3 -- retourner les lignes 1 et 3 et les colonnes 1 et 3) : elle fonctionne mais necessite 4 coups.
+L'enumeration des 2^8 = 256 sous-ensembles de coups confirme qu'**aucun sous-ensemble
+ne mene a la configuration tout-noir** pour la grille de Sofia.
 
 ### Conclusion pour Sofia
 
-**Sofia peut atteindre la configuration tout-noir en 2 coups minimum (L2 et C2).**
+**Il est impossible pour Sofia d'atteindre la configuration tout-noir.**
 
-**Reponse : 2**
+**Reponse : 0**
 
 ---
 
@@ -229,9 +312,7 @@ On peut aussi verifier la seconde solution (L1, L3, C1, C3 -- retourner les lign
 
 | Joueuse | Minimum de coups | Explication |
 |---------|-----------------|-------------|
-| **Amel** | **0 (impossible)** | L'invariant de parite des positions hors diagonale principale est viole (3 blancs = impair) |
-| **Sofia** | **2** | Solution : retourner la ligne 2 (L2) puis la colonne 2 (C2) |
+| **Amel** | **4** | Deux solutions optimales : {L1, L3, C1, D2} ou {L2, C2, C3, D2} |
+| **Sofia** | **0 (impossible)** | L'invariant de parite sur les 6 positions hors anti-diagonale est viole (5 blancs = impair, mais la cible exige une parite paire) |
 
-**Nombre de solutions pour l'ensemble du probleme : 1** (il n'y a qu'une seule paire de reponses : Amel = 0, Sofia = 2).
-
-La reponse au probleme est : **Amel 0, Sofia 2**.
+**Reponse au probleme : Amel 4, Sofia 0.**
