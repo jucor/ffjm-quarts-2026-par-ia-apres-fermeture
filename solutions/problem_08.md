@@ -10,123 +10,131 @@ Max utilise uniquement les dominos dont au moins un des deux cotes porte un nomb
 
 ## Raisonnement
 
-### Etape 1 : Inventaire des dominos disponibles
+### Etape 1 : Lister tous les dominos disponibles
 
-Dans un jeu complet avec des valeurs de 0 a 10, chaque domino est une paire (a, b) avec a <= b. Max ne garde que les dominos dont **au moins un cote** vaut 0, 2 ou 6.
+Max garde uniquement les dominos qui ont **au moins un cote egal a 0, 2 ou 6**. Listons-les tous.
 
-**Dominos contenant 0 :**
-(0,0), (0,1), (0,2), (0,3), (0,4), (0,5), (0,6), (0,7), (0,8), (0,9), (0,10) --> **11 dominos**
+**Dominos avec un 0 :**
+(0|0), (0|1), (0|2), (0|3), (0|4), (0|5), (0|6), (0|7), (0|8), (0|9), (0|10) --> **11 dominos**
 
-**Dominos contenant 2 mais pas 0 :**
-(1,2), (2,2), (2,3), (2,4), (2,5), (2,6), (2,7), (2,8), (2,9), (2,10) --> **10 dominos**
+**Dominos avec un 2, pas encore comptes :**
+(1|2), (2|2), (2|3), (2|4), (2|5), (2|6), (2|7), (2|8), (2|9), (2|10) --> **10 dominos**
 
-**Dominos contenant 6 mais ni 0 ni 2 :**
-(1,6), (3,6), (4,6), (5,6), (6,6), (6,7), (6,8), (6,9), (6,10) --> **9 dominos**
+**Dominos avec un 6, pas encore comptes :**
+(1|6), (3|6), (4|6), (5|6), (6|6), (6|7), (6|8), (6|9), (6|10) --> **9 dominos**
 
-**Verification par inclusion-exclusion :** si A_v designe l'ensemble des dominos portant la valeur v, alors |A_0| = |A_2| = |A_6| = 11, et les intersections deux a deux sont |A_0 inter A_2| = 1 (le domino (0,2)), |A_0 inter A_6| = 1 (le (0,6)), |A_2 inter A_6| = 1 (le (2,6)), et l'intersection triple est vide (un domino n'a que 2 faces). D'ou : 11 + 11 + 11 - 1 - 1 - 1 + 0 = **30 dominos au total**.
+**Total : 11 + 10 + 9 = 30 dominos.**
 
-### Etape 2 : Modelisation par un graphe
+### Etape 2 : La regle des paires dans une chaine de dominos
 
-On modelise le probleme en theorie des graphes :
-- **Sommets** : les valeurs 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 (11 sommets).
-- **Aretes** : chaque domino (a, b) est une arete entre les sommets a et b. Un double (a, a) est une boucle au sommet a.
+Avant de chercher la plus longue chaine, il faut comprendre une regle importante.
 
-Construire une suite de dominos en respectant la regle revient a trouver une **chaine** (trail) dans ce graphe, c'est-a-dire un parcours d'aretes sans repeter aucune arete. Maximiser le nombre de dominos poses equivaut a trouver la chaine la plus longue.
-
-### Etape 3 : Calcul des degres des sommets
-
-Le degre d'un sommet est le nombre de bouts d'aretes qui y sont rattaches. Une boucle (a, a) contribue 2 au degre de a.
-
-| Sommet | Aretes incidentes | Degre | Parite |
-|--------|-------------------|-------|--------|
-| 0 | (0,0)[boucle], (0,1), (0,2), (0,3), (0,4), (0,5), (0,6), (0,7), (0,8), (0,9), (0,10) | 2 + 10 = 12 | pair |
-| 1 | (0,1), (1,2), (1,6) | 3 | **impair** |
-| 2 | (0,2), (1,2), (2,2)[boucle], (2,3), (2,4), (2,5), (2,6), (2,7), (2,8), (2,9), (2,10) | 2 + 10 = 12 | pair |
-| 3 | (0,3), (2,3), (3,6) | 3 | **impair** |
-| 4 | (0,4), (2,4), (4,6) | 3 | **impair** |
-| 5 | (0,5), (2,5), (5,6) | 3 | **impair** |
-| 6 | (0,6), (2,6), (1,6), (3,6), (4,6), (5,6), (6,6)[boucle], (6,7), (6,8), (6,9), (6,10) | 2 + 10 = 12 | pair |
-| 7 | (0,7), (2,7), (6,7) | 3 | **impair** |
-| 8 | (0,8), (2,8), (6,8) | 3 | **impair** |
-| 9 | (0,9), (2,9), (6,9) | 3 | **impair** |
-| 10 | (0,10), (2,10), (6,10) | 3 | **impair** |
-
-**Verification :** somme des degres = 3 x 12 + 8 x 3 = 36 + 24 = 60 = 2 x 30. Correct (chaque arete contribue 2 a la somme).
-
-**Sommets de degre impair : {1, 3, 4, 5, 7, 8, 9, 10} --> 8 sommets impairs.**
-
-### Etape 4 : Condition pour une chaine eulerienne
-
-Un theoreme classique de theorie des graphes (Euler) affirme que :
-- Un graphe connexe admet un **chemin eulerien** (chaine utilisant toutes les aretes exactement une fois) si et seulement s'il possede **exactement 0 ou 2** sommets de degre impair.
-- S'il y a 0 sommets impairs, on obtient un circuit (retour au depart) ; s'il y en a 2, on obtient un chemin ouvert entre ces deux sommets.
-
-Notre graphe possede **8 sommets impairs**, donc on ne peut **pas** utiliser les 30 dominos en une seule chaine.
-
-### Etape 5 : Nombre minimal d'aretes a retirer
-
-Pour trouver la plus longue chaine, on cherche a retirer le **minimum d'aretes** du graphe pour obtenir un sous-graphe connexe ayant au plus 2 sommets de degre impair. La longueur de la chaine sera alors 30 moins le nombre d'aretes retirees.
-
-**Observation structurelle cle :** chacun des 8 sommets impairs (1, 3, 4, 5, 7, 8, 9, 10) est relie exclusivement aux trois sommets pairs (0, 2, 6), qui forment les "hubs" du graphe. Il n'existe **aucune arete directe** entre deux sommets impairs.
-
-Pour rendre un sommet impair pair, il faut retirer un nombre impair de ses aretes (1 ou 3). Le minimum est d'en retirer 1, laissant le sommet avec un degre de 2.
-
-Cependant, retirer une arete entre un sommet impair v et un hub h :
-- rend v pair (bien),
-- mais change la parite de h (mal si h etait pair).
-
-**Strategie optimale :** retirer les aretes **par paires** incidentes au meme hub. Si on retire deux aretes (h, v1) et (h, v2) du meme hub h, alors :
-- v1 et v2 passent d'impairs a pairs (2 sommets corriges),
-- h perd 2 en degre, donc sa parite ne change pas (reste pair).
-
-Pour corriger 6 des 8 sommets impairs (en gardant 2 comme extremites du chemin), il faut **3 paires = 6 aretes retirees**, reparties equitablement entre les 3 hubs : 2 aretes retirees de chaque hub.
-
-**On ne peut pas faire mieux que 6 aretes**, car :
-- chaque arete retiree ne corrige qu'un seul sommet impair,
-- il faut corriger 6 sommets,
-- et la contrainte de parite sur les hubs impose de retirer un nombre pair d'aretes par hub.
-
-### Etape 6 : Construction explicite
-
-**Aretes retirees (6 dominos non utilises) :**
-
-| Arete retiree | Hub concerne |
-|---------------|-------------|
-| (0, 3) | hub 0 |
-| (0, 5) | hub 0 |
-| (2, 4) | hub 2 |
-| (2, 7) | hub 2 |
-| (6, 8) | hub 6 |
-| (6, 9) | hub 6 |
-
-**Degres dans le sous-graphe restant (24 aretes) :**
-
-| Sommet | Degre | Parite |
-|--------|-------|--------|
-| 0 | 10 | pair |
-| 1 | 3 | **impair** (extremite) |
-| 2 | 10 | pair |
-| 3 | 2 | pair |
-| 4 | 2 | pair |
-| 5 | 2 | pair |
-| 6 | 10 | pair |
-| 7 | 2 | pair |
-| 8 | 2 | pair |
-| 9 | 2 | pair |
-| 10 | 3 | **impair** (extremite) |
-
-Le sous-graphe est connexe (chaque sommet reste relie a au moins 2 des hubs, et les hubs sont relies entre eux) et possede exactement 2 sommets impairs (1 et 10). Il admet donc un chemin eulerien de 1 a 10 utilisant les 24 aretes.
-
-**Exemple de chaine de 24 dominos :**
+Regardons un petit exemple de chaine :
 
 ```
-(1|0) - (0|0) - (0|4) - (4|6) - (6|1) - (1|2) - (2|2) - (2|3) - (3|6) - (6|6) - (6|5) - (5|2) - (2|6) - (6|7) - (7|0) - (0|8) - (8|2) - (2|9) - (9|0) - (0|2) - (2|10) - (10|0) - (0|6) - (6|10)
+[2|5] [5|0] [0|3]
 ```
 
-Verification des raccordements : chaque paire de demi-dominos adjacents porte bien le meme nombre de points (1, 0, 0, 4, 6, 1, 2, 2, 3, 6, 6, 5, 2, 6, 7, 0, 8, 2, 9, 0, 2, 10, 0, 6, 10), et les 24 aretes du sous-graphe sont toutes utilisees exactement une fois.
+Observons le nombre 5 : il apparait au milieu de la chaine, une fois a droite du premier domino et une fois a gauche du deuxieme. Il apparait donc **2 fois** (un nombre pair). C'est pareil pour le 0 qui apparait aussi 2 fois au milieu.
+
+En revanche, le 2 (tout a gauche) et le 3 (tout a droite) n'apparaissent qu'**une seule fois** chacun.
+
+Prenons un exemple plus long :
+
+```
+[1|0] [0|4] [4|2] [2|0] [0|6]
+```
+
+Ici, le 0 apparait **4 fois** au milieu (un nombre pair). Le 4 et le 2 apparaissent **2 fois** chacun (pair aussi). Seuls le 1 et le 6, aux deux bouts de la chaine, apparaissent **1 fois** (impair).
+
+**La regle :** dans une chaine de dominos, chaque nombre qui se retrouve au milieu de la chaine doit apparaitre un nombre **pair** de fois sur les demi-dominos (il "entre" et il "sort", toujours par paires). Seuls les nombres places aux deux **extremites** (le tout premier et le tout dernier de la chaine) peuvent apparaitre un nombre **impair** de fois.
+
+Comme une chaine n'a que **2 bouts**, on peut avoir au maximum **2 nombres** qui apparaissent un nombre impair de fois.
+
+### Etape 3 : Compter les apparitions de chaque nombre
+
+Comptons combien de fois chaque nombre apparait sur l'ensemble des demi-dominos de Max. Attention : un double comme (0|0) fait apparaitre le 0 **deux** fois.
+
+**Les nombres 0, 2 et 6** (les "numeros centraux") :
+
+- **Le 0** apparait sur : (0|0) deux fois, (0|1), (0|2), (0|3), (0|4), (0|5), (0|6), (0|7), (0|8), (0|9), (0|10).
+  Total : 2 + 10 = **12 apparitions** (nombre pair).
+
+- **Le 2** apparait sur : (2|2) deux fois, (0|2), (1|2), (2|3), (2|4), (2|5), (2|6), (2|7), (2|8), (2|9), (2|10).
+  Total : 2 + 10 = **12 apparitions** (nombre pair).
+
+- **Le 6** apparait sur : (6|6) deux fois, (0|6), (2|6), (1|6), (3|6), (4|6), (5|6), (6|7), (6|8), (6|9), (6|10).
+  Total : 2 + 10 = **12 apparitions** (nombre pair).
+
+**Les nombres 1, 3, 4, 5, 7, 8, 9, 10** (les "numeros satellites") :
+
+Chacun de ces nombres apparait sur exactement **3 dominos** : un domino avec le 0, un avec le 2, et un avec le 6.
+
+Par exemple, le nombre 4 apparait sur (0|4), (2|4) et (4|6), donc **3 apparitions** (nombre impair).
+
+C'est pareil pour les 7 autres : 1, 3, 5, 7, 8, 9 et 10 apparaissent chacun exactement **3 fois** (nombre impair).
+
+**Bilan :** les nombres 0, 2 et 6 apparaissent un nombre pair de fois (12), mais les **8 nombres** 1, 3, 4, 5, 7, 8, 9 et 10 apparaissent chacun un nombre **impair** de fois (3).
+
+### Etape 4 : Pourquoi on ne peut pas utiliser les 30 dominos
+
+D'apres la regle des paires (etape 2), dans une chaine de dominos, au maximum **2 nombres** peuvent avoir un nombre impair d'apparitions (ceux aux deux bouts).
+
+Or, nous avons **8 nombres** avec un nombre impair d'apparitions. C'est beaucoup trop ! Il est donc **impossible** de placer les 30 dominos en une seule chaine.
+
+Il faut retirer des dominos pour reduire le nombre de "nombres impairs" de 8 a 2.
+
+### Etape 5 : Combien de dominos retirer au minimum ?
+
+Nous devons corriger **6** des 8 nombres impairs (en garder 2 pour les extremites de la chaine). Corriger un nombre, c'est le faire passer d'un nombre impair d'apparitions (3) a un nombre pair (2), en retirant un domino qui le contient.
+
+**Observation importante :** regardons la liste des 30 dominos. Chacun des 8 nombres satellites (1, 3, 4, 5, 7, 8, 9, 10) n'apparait **que sur des dominos qui ont 0, 2 ou 6 de l'autre cote**. Par exemple, il n'y a pas de domino (1|3) ou (4|7) dans la selection de Max, car aucun de ces dominos n'a un cote egal a 0, 2 ou 6.
+
+Donc, chaque domino qu'on retire a :
+- d'un cote, un numero satellite (1, 3, 4, 5, 7, 8, 9 ou 10),
+- de l'autre cote, un numero central (0, 2 ou 6).
+
+Quand on retire un tel domino :
+- Le numero satellite perd 1 apparition : il passe de 3 a 2 (pair, c'est ce qu'on veut).
+- Mais le numero central perd aussi 1 apparition : il passe de 12 a 11 (impair, ce n'est pas bon !).
+
+Si on retire un **deuxieme** domino du meme numero central, celui-ci passe de 11 a 10 (pair a nouveau, c'est repare !).
+
+**Conclusion :** il faut retirer les dominos **par paires** au niveau de chaque numero central. En retirant 2 dominos relies au 0, 2 dominos relies au 2, et 2 dominos relies au 6, on corrige 6 numeros satellites tout en gardant les 3 numeros centraux avec un nombre pair d'apparitions.
+
+**Total de dominos retires : 2 + 2 + 2 = 6.**
+
+On ne peut pas faire mieux : chaque domino retire ne corrige qu'un seul numero satellite, il faut en corriger 6, et la contrainte de retirer un nombre pair par numero central nous impose exactement 6 retraits (la repartition 2 + 2 + 2 est la seule facon de partager 6 en trois nombres pairs non nuls ; les repartitions comme 0 + 2 + 4 fonctionneraient aussi mais ne donnent pas un meilleur resultat).
+
+### Etape 6 : La plus longue chaine a donc 24 dominos
+
+$$30 - 6 = 24$$
+
+### Etape 7 : Exemple de chaine de 24 dominos
+
+Choisissons de retirer les 6 dominos suivants :
+
+- Du cote du 0 : on retire **(0|7)** et **(0|9)** --> les nombres 7 et 9 passent a 2 apparitions (pair).
+- Du cote du 2 : on retire **(2|5)** et **(2|8)** --> les nombres 5 et 8 passent a 2 apparitions (pair).
+- Du cote du 6 : on retire **(4|6)** et **(6|10)** --> les nombres 4 et 10 passent a 2 apparitions (pair).
+
+Les nombres 1 et 3 restent a 3 apparitions (impair) : ils seront aux deux bouts de la chaine.
+
+Voici une chaine de **24 dominos** qui utilise tous les dominos restants, en allant du 1 au 3 :
+
+```
+[1|0] [0|0] [0|2] [2|2] [2|1] [1|6] [6|6] [6|3] [3|0]
+[0|4] [4|2] [2|6] [6|5] [5|0] [0|8] [8|6] [6|7] [7|2]
+[2|10] [10|0] [0|6] [6|9] [9|2] [2|3]
+```
+
+**Verification :**
+
+- Les nombres qui se touchent entre deux dominos voisins correspondent bien :
+  1-**0**, **0**-0, 0-**2**, **2**-2, 2-**1**, **1**-6, 6-**6**, **6**-3, 3-**0**, **0**-4, 4-**2**, **2**-6, 6-**5**, **5**-0, 0-**8**, **8**-6, 6-**7**, **7**-2, 2-**10**, **10**-0, 0-**6**, **6**-9, 9-**2**, **2**-3.
+- Les 24 dominos sont tous differents.
+- Chaque domino a bien au moins un cote egal a 0, 2 ou 6.
 
 ## Reponse
-
-$$\boxed{24}$$
 
 **Le plus grand nombre de dominos que Max peut poser est 24.**
